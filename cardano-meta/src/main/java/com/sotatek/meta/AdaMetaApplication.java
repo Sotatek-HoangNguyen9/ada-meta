@@ -82,7 +82,7 @@ public class AdaMetaApplication extends SpringBootServletInitializer {
 					LOGGER.info("Diffs size: " + diffs.size());
 					List<String> listChangesFile = new ArrayList<>();
 					List<String> listDeletedFile = new ArrayList<>();
-					String mappingsPath = "/mappings/.*json" ;
+					String mappingsPath = "\\/mappings\\/.*json";
 					Pattern pattern = Pattern.compile(mappingsPath);
 					for (DiffEntry diff : diffs) {
 						if(diff.getChangeType().equals(DiffEntry.ChangeType.DELETE)) {
