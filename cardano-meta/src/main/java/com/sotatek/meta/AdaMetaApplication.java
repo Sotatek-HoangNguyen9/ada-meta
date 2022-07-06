@@ -7,8 +7,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
-import com.sotatek.meta.controller.MetaController;
-import org.apache.log4j.BasicConfigurator;
+import com.sotatek.meta.document.MetaData;
 import org.apache.log4j.Logger;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -18,27 +17,23 @@ import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.TextProgressMonitor;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
+import java.util.regex.Pattern;
 
 @SpringBootApplication
 @EnableScheduling
@@ -85,18 +80,31 @@ public class AdaMetaApplication extends SpringBootServletInitializer {
 						.call();
 				if (diffs.size() > 0) {
 					LOGGER.info("Diffs size: " + diffs.size());
+					List<String> listChangesFile = new ArrayList<>();
+					List<String> listDeletedFile = new ArrayList<>();
+					String mappingsPath = "/mappings/.*json" ;
+					Pattern pattern = Pattern.compile(mappingsPath);
 					for (DiffEntry diff : diffs) {
 						if(diff.getChangeType().equals(DiffEntry.ChangeType.DELETE)) {
 							LOGGER.info("diff.getOldPath(): " + diff.getOldPath());
+							if(pattern.matcher( diff.getOldPath() ).matches()) {
+								listDeletedFile.add(diff.getOldPath());
+							}
 						} else {
 							LOGGER.info("diff.getNewPath(): " + diff.getNewPath());
+							if(pattern.matcher( diff.getNewPath() ).matches()) {
+								listChangesFile.add(diff.getNewPath());
+							}
 						}
-//						Matcher testNameMatcher = testNamePattern.matcher(changePath);
-//						if (testNameMatcher.matches()) {
-//							final String testName = testNameMatcher.group(1);
-//							result.add(testName);
-//						}
 					}
+					if (listChangesFile.size() > 0) {
+						handleAndSaveAllRepoChanges(listChangesFile);
+					}
+					if (listDeletedFile.size() > 0) {
+						handleAndDeleteFileRemoved(listChangesFile);
+					}
+				} else {
+					LOGGER.info("Everything up to date !");
 				}
 			} else {
 				LOGGER.error("Pull Failed!");
@@ -110,21 +118,22 @@ public class AdaMetaApplication extends SpringBootServletInitializer {
 		}
 	}
 
-
-	public void cloneCardanoTokenRegistry() throws IOException, GitAPIException {
-
-		// Local directory on this machine where we will clone remote repo.
-		File localRepoDir = new File(gitLocalRepoPath);
-		// Monitor to get git command progress printed on java System.out console
-		TextProgressMonitor consoleProgressMonitor = new TextProgressMonitor(new PrintWriter(System.out));
-		/*
-		 * Git clone remote repo into local directory.
-		 *
-		 * Equivalent of --> $ git clone https://github.com/deepanshujain92/test_git.git
-		 */
-		System.out.println("\n>>> Cloning repository\n");
-		Repository repo = Git.cloneRepository().setProgressMonitor(consoleProgressMonitor).setDirectory(localRepoDir)
-				.setURI("https://github.com/cardano-foundation/cardano-token-registry.git").call().getRepository();
+	public void handleAndSaveAllRepoChanges(List<String> listChangesFile) throws IOException {
+		ObjectMapper mapper = new ObjectMapper();
+		List<MetaData> metaDataList = new ArrayList<>();
+		for (String changeFile : listChangesFile) {
+			try {
+				InputStream is = MetaData.class.getResourceAsStream("../" + changeFile);
+				MetaData metaData = mapper.readValue(is, MetaData.class);
+				System.out.println(metaData.toString());
+				metaDataList.add(metaData);
+			} catch (Exception ex) {
+				LOGGER.error("Parse JSON Failed!" , ex);
+				continue;
+			}
+		}
+	}
+	public void handleAndDeleteFileRemoved(List<String> listDeletedFile) {
 
 	}
 
