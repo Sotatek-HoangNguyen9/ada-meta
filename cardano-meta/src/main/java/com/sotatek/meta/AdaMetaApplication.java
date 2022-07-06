@@ -132,13 +132,14 @@ public class AdaMetaApplication extends SpringBootServletInitializer {
 						List<MetaData> metaDataRemovedList = new ArrayList<>();
 						for (String deleteFile : listDeletedFile) {
 							System.out.println(deleteFile);
-//							try {
-//								MetaData metaData = mapper.readValue(new File("C:/Users/ThinkPad/Desktop/github/ada-meta/" + deleteFile), MetaData.class);
-//								metaDataRemovedList.add(metaData);
-//							} catch (Exception ex) {
-//								LOGGER.error("Parse JSON Failed!" , ex);
-//								continue;
-//							}
+							try {
+								MetaData metaData = new MetaData();
+								metaData.setSubject(deleteFile);
+								metaDataRemovedList.add(metaData);
+							} catch (Exception ex) {
+								LOGGER.error("Parse JSON Failed!" , ex);
+								continue;
+							}
 						}
 						if (metaDataRemovedList.size() > 0) {
 							try {
