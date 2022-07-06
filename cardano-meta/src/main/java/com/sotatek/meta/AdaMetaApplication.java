@@ -36,6 +36,7 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @SpringBootApplication
@@ -53,6 +54,7 @@ public class AdaMetaApplication extends SpringBootServletInitializer {
 	MetaDataRepository metaDataRepository;
 	public static void main(String[] args) throws IOException {
 		SpringApplication.run(AdaMetaApplication.class, args);
+
 	}
 
 	@Scheduled(cron = "0 0/1 * * * *")
@@ -89,15 +91,18 @@ public class AdaMetaApplication extends SpringBootServletInitializer {
 					List<String> listDeletedFile = new ArrayList<>();
 					String mappingsPath = ".*/mappings/(.*)\\.json";
 					Pattern pattern = Pattern.compile(mappingsPath);
+					Matcher matcher;
 					for (DiffEntry diff : diffs) {
 						if(diff.getChangeType().equals(DiffEntry.ChangeType.DELETE)) {
 							LOGGER.info("diff.getOldPath(): " + diff.getOldPath());
-							if(pattern.matcher( diff.getOldPath() ).matches()) {
-								listDeletedFile.add(pattern.matcher( diff.getOldPath() ).group(1));
+							matcher = pattern.matcher( diff.getOldPath() );
+							if(matcher.matches()) {
+								listDeletedFile.add(matcher.group(1));
 							}
 						} else {
 							LOGGER.info("diff.getNewPath(): " + diff.getNewPath());
-							if(pattern.matcher( diff.getNewPath() ).matches()) {
+							matcher = pattern.matcher( diff.getNewPath() );
+							if(matcher.matches()) {
 								listChangesFile.add(diff.getNewPath());
 							}
 						}
