@@ -59,6 +59,9 @@ public class AdaMetaApplication extends SpringBootServletInitializer {
 	private void checkRepoFunc() throws IOException, GitAPIException{
 		LOGGER.info("Current repo path: " + gitLocalRepoPath);
 		File localRepoDir = new File(gitLocalRepoPath);
+		if (!localRepoDir.exists()){
+			localRepoDir.mkdir();
+		}
 		TextProgressMonitor consoleProgressMonitor = new TextProgressMonitor(new PrintWriter(System.out));
 		if(localRepoDir.listFiles().length > 0) {
 			// was cloned before
