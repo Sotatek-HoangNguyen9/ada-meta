@@ -92,6 +92,7 @@ public class AdaMetaApplication extends SpringBootServletInitializer {
 							}
 						} else {
 							LOGGER.info("diff.getNewPath(): " + diff.getNewPath());
+							LOGGER.info("pattern.matcher( diff.getNewPath() ).matches(): " + pattern.matcher( diff.getNewPath() ).matches());
 							if(pattern.matcher( diff.getNewPath() ).matches()) {
 								listChangesFile.add(diff.getNewPath());
 							}
