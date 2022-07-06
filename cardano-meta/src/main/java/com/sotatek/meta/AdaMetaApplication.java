@@ -141,11 +141,27 @@ public class AdaMetaApplication extends SpringBootServletInitializer {
 			} catch (Exception ex) {
 				LOGGER.error("Save all changes failed!" , ex);
 			}
-
 		}
 	}
 	public void handleAndDeleteFileRemoved(List<String> listDeletedFile) {
-
+		ObjectMapper mapper = new ObjectMapper();
+		List<MetaData> metaDataList = new ArrayList<>();
+		for (String deleteFile : listDeletedFile) {
+			try {
+				MetaData metaData = mapper.readValue(new File("C:/Users/ThinkPad/Desktop/github/ada-meta/" + deleteFile), MetaData.class);
+				metaDataList.add(metaData);
+			} catch (Exception ex) {
+				LOGGER.error("Parse JSON Failed!" , ex);
+				continue;
+			}
+		}
+		if (metaDataList.size() > 0) {
+			try {
+				metaDataRepository.deleteAll(metaDataList);
+			} catch (Exception ex) {
+				LOGGER.error("Delete all remove file failed!" , ex);
+			}
+		}
 	}
 
 	@Override
