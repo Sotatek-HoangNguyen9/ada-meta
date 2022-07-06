@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -50,7 +51,7 @@ public class AdaMetaApplication extends SpringBootServletInitializer {
 		SpringApplication.run(AdaMetaApplication.class, args);
 	}
 
-	@Scheduled(cron = "0 0/3 * * * *")
+	@Scheduled(cron = "0 0/1 * * * *")
 	private void checkRepoFunc() throws IOException, GitAPIException{
 		LOGGER.info("Current repo path: " + gitLocalRepoPath);
 		File localRepoDir = new File(gitLocalRepoPath);
@@ -123,9 +124,7 @@ public class AdaMetaApplication extends SpringBootServletInitializer {
 		List<MetaData> metaDataList = new ArrayList<>();
 		for (String changeFile : listChangesFile) {
 			try {
-				System.out.println("../" + changeFile);
-				InputStream is = MetaData.class.getResourceAsStream("../" + changeFile);
-				System.out.println(is != null);
+				InputStream is = MetaData.class.getResourceAsStream("C:\\Users\\ThinkPad\\Desktop\\github\\ada-meta\\" + changeFile);
 				MetaData metaData = mapper.readValue(is, MetaData.class);
 				System.out.println(metaData.toString());
 				metaDataList.add(metaData);
