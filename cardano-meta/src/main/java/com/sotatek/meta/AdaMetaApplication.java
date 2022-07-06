@@ -47,7 +47,7 @@ public class AdaMetaApplication extends SpringBootServletInitializer {
 	@Value("${git.repository.url}")
 	private String gitRepoUrl;
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		SpringApplication.run(AdaMetaApplication.class, args);
 	}
 
@@ -124,8 +124,7 @@ public class AdaMetaApplication extends SpringBootServletInitializer {
 		List<MetaData> metaDataList = new ArrayList<>();
 		for (String changeFile : listChangesFile) {
 			try {
-				InputStream is = MetaData.class.getResourceAsStream("C:\\Users\\ThinkPad\\Desktop\\github\\ada-meta\\" + changeFile);
-				MetaData metaData = mapper.readValue(is, MetaData.class);
+				MetaData metaData = mapper.readValue(new File("C:/Users/ThinkPad/Desktop/github/ada-meta/" + changeFile), MetaData.class);
 				System.out.println(metaData.toString());
 				metaDataList.add(metaData);
 			} catch (Exception ex) {
