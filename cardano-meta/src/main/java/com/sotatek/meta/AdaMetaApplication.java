@@ -8,6 +8,7 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import com.sotatek.meta.document.MetaData;
+import com.sotatek.meta.repository.MetaDataRepository;
 import org.apache.log4j.Logger;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -17,6 +18,7 @@ import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.TextProgressMonitor;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -47,6 +49,8 @@ public class AdaMetaApplication extends SpringBootServletInitializer {
 	@Value("${git.repository.url}")
 	private String gitRepoUrl;
 
+	@Autowired
+	MetaDataRepository metaDataRepository;
 	public static void main(String[] args) throws IOException {
 		SpringApplication.run(AdaMetaApplication.class, args);
 	}
@@ -125,12 +129,19 @@ public class AdaMetaApplication extends SpringBootServletInitializer {
 		for (String changeFile : listChangesFile) {
 			try {
 				MetaData metaData = mapper.readValue(new File("C:/Users/ThinkPad/Desktop/github/ada-meta/" + changeFile), MetaData.class);
-				System.out.println(metaData.toString());
 				metaDataList.add(metaData);
 			} catch (Exception ex) {
 				LOGGER.error("Parse JSON Failed!" , ex);
 				continue;
 			}
+		}
+		if (metaDataList.size() > 0) {
+			try {
+				metaDataRepository.saveAll(metaDataList);
+			} catch (Exception ex) {
+				LOGGER.error("Save all changes failed!" , ex);
+			}
+
 		}
 	}
 	public void handleAndDeleteFileRemoved(List<String> listDeletedFile) {
