@@ -92,7 +92,6 @@ public class AdaMetaApplication extends SpringBootServletInitializer {
 							}
 						} else {
 							LOGGER.info("diff.getNewPath(): " + diff.getNewPath());
-							LOGGER.info("pattern.matcher( diff.getNewPath() ).matches(): " + pattern.matcher( diff.getNewPath() ).matches());
 							if(pattern.matcher( diff.getNewPath() ).matches()) {
 								listChangesFile.add(diff.getNewPath());
 							}
@@ -124,7 +123,9 @@ public class AdaMetaApplication extends SpringBootServletInitializer {
 		List<MetaData> metaDataList = new ArrayList<>();
 		for (String changeFile : listChangesFile) {
 			try {
+				System.out.println("../" + changeFile);
 				InputStream is = MetaData.class.getResourceAsStream("../" + changeFile);
+				System.out.println(is != null);
 				MetaData metaData = mapper.readValue(is, MetaData.class);
 				System.out.println(metaData.toString());
 				metaDataList.add(metaData);
