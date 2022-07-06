@@ -87,13 +87,13 @@ public class AdaMetaApplication extends SpringBootServletInitializer {
 					LOGGER.info("Diffs size: " + diffs.size());
 					List<String> listChangesFile = new ArrayList<>();
 					List<String> listDeletedFile = new ArrayList<>();
-					String mappingsPath = ".*/mappings/.*\\.json";
+					String mappingsPath = ".*/mappings/(.*)\\.json";
 					Pattern pattern = Pattern.compile(mappingsPath);
 					for (DiffEntry diff : diffs) {
 						if(diff.getChangeType().equals(DiffEntry.ChangeType.DELETE)) {
 							LOGGER.info("diff.getOldPath(): " + diff.getOldPath());
 							if(pattern.matcher( diff.getOldPath() ).matches()) {
-								listDeletedFile.add(diff.getOldPath());
+								listDeletedFile.add(pattern.matcher( diff.getOldPath() ).group(1));
 							}
 						} else {
 							LOGGER.info("diff.getNewPath(): " + diff.getNewPath());
@@ -102,11 +102,46 @@ public class AdaMetaApplication extends SpringBootServletInitializer {
 							}
 						}
 					}
+
+					ObjectMapper mapper = new ObjectMapper();
 					if (listChangesFile.size() > 0) {
-						handleAndSaveAllRepoChanges(listChangesFile);
+						List<MetaData> metaDataChangedList = new ArrayList<>();
+						for (String changeFile : listChangesFile) {
+							try {
+								MetaData metaData = mapper.readValue(new File("C:/Users/ThinkPad/Desktop/github/ada-meta/" + changeFile), MetaData.class);
+								metaDataChangedList.add(metaData);
+							} catch (Exception ex) {
+								LOGGER.error("Parse JSON Failed!" , ex);
+								continue;
+							}
+						}
+						if (metaDataChangedList.size() > 0) {
+							try {
+								metaDataRepository.saveAll(metaDataChangedList);
+							} catch (Exception ex) {
+								LOGGER.error("Save all changes failed!" , ex);
+							}
+						}
 					}
 					if (listDeletedFile.size() > 0) {
-						handleAndDeleteFileRemoved(listChangesFile);
+						List<MetaData> metaDataRemovedList = new ArrayList<>();
+						for (String deleteFile : listDeletedFile) {
+							System.out.println(deleteFile);
+//							try {
+//								MetaData metaData = mapper.readValue(new File("C:/Users/ThinkPad/Desktop/github/ada-meta/" + deleteFile), MetaData.class);
+//								metaDataRemovedList.add(metaData);
+//							} catch (Exception ex) {
+//								LOGGER.error("Parse JSON Failed!" , ex);
+//								continue;
+//							}
+						}
+						if (metaDataRemovedList.size() > 0) {
+							try {
+								metaDataRepository.deleteAll(metaDataRemovedList);
+							} catch (Exception ex) {
+								LOGGER.error("Delete all remove file failed!" , ex);
+							}
+						}
 					}
 				} else {
 					LOGGER.info("Everything up to date !");
@@ -123,46 +158,6 @@ public class AdaMetaApplication extends SpringBootServletInitializer {
 		}
 	}
 
-	public void handleAndSaveAllRepoChanges(List<String> listChangesFile) throws IOException {
-		ObjectMapper mapper = new ObjectMapper();
-		List<MetaData> metaDataList = new ArrayList<>();
-		for (String changeFile : listChangesFile) {
-			try {
-				MetaData metaData = mapper.readValue(new File("C:/Users/ThinkPad/Desktop/github/ada-meta/" + changeFile), MetaData.class);
-				metaDataList.add(metaData);
-			} catch (Exception ex) {
-				LOGGER.error("Parse JSON Failed!" , ex);
-				continue;
-			}
-		}
-		if (metaDataList.size() > 0) {
-			try {
-				metaDataRepository.saveAll(metaDataList);
-			} catch (Exception ex) {
-				LOGGER.error("Save all changes failed!" , ex);
-			}
-		}
-	}
-	public void handleAndDeleteFileRemoved(List<String> listDeletedFile) {
-		ObjectMapper mapper = new ObjectMapper();
-		List<MetaData> metaDataList = new ArrayList<>();
-		for (String deleteFile : listDeletedFile) {
-			try {
-				MetaData metaData = mapper.readValue(new File("C:/Users/ThinkPad/Desktop/github/ada-meta/" + deleteFile), MetaData.class);
-				metaDataList.add(metaData);
-			} catch (Exception ex) {
-				LOGGER.error("Parse JSON Failed!" , ex);
-				continue;
-			}
-		}
-		if (metaDataList.size() > 0) {
-			try {
-				metaDataRepository.deleteAll(metaDataList);
-			} catch (Exception ex) {
-				LOGGER.error("Delete all remove file failed!" , ex);
-			}
-		}
-	}
 
 	@Override
 	protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
