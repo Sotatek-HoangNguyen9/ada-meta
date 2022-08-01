@@ -1,5 +1,6 @@
 package com.sotatek.meta.document;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @AllArgsConstructor
 @NoArgsConstructor
 @Document(collection = "meta_data")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class MetaData {
 
     @Id
@@ -22,6 +24,10 @@ public class MetaData {
     private ChildEntry decimals;
     private ChildEntry logo;
     private ChildEntry description;
+
+    public MetaData(String subject) {
+        this.subject = subject;
+    }
 
     @Override
     public String toString() {
