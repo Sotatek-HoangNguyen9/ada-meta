@@ -55,7 +55,7 @@ public class CheckRepoChanges {
             Repository exsistRepo = git.getRepository();
             ObjectId oldHead = exsistRepo.resolve("HEAD^{tree}");
             PullResult pullResult = git.pull().setProgressMonitor(consoleProgressMonitor).setRemote("origin")
-                    .setRemoteBranchName("master").call();
+                    .setRemoteBranchName("main").call();
             if (pullResult.isSuccessful()) {
                 LOGGER.info("Pull Successfull");
                 ObjectId newHead = exsistRepo.resolve("HEAD^{tree}");
